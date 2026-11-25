@@ -1,0 +1,235 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HORCRUX</title>
+<meta name="description" content="HORCRUX is a unified feed-forward transformer that reconstructs one or two hands and an unseen object from a single image and estimates their contact from coarse to fine.">
+<meta property="og:type" content="website">
+<meta property="og:title" content="HORCRUX: Generalizable Feed-Forward 3D Hand-Object Reconstruction with Coarse-to-Fine Contact Estimation">
+<meta property="og:description" content="A single feed-forward model for one or two hands with unseen objects, with per-joint contact resolved over finer hand regions.">
+<meta property="og:url" content="https://shpark97.github.io/Horcrux/">
+<meta property="og:image" content="https://shpark97.github.io/Horcrux/static/img/og.jpg">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23fff'/%3E%3Ccircle cx='12' cy='16' r='8' fill='%23b8cdee'/%3E%3Ccircle cx='20' cy='16' r='8' fill='%23f5a338'/%3E%3Cpath d='M16 9.1a8 8 0 0 1 0 13.8a8 8 0 0 1 0-13.8z' fill='%23d54751'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="static/css/style.css?v=20261125a">
+</head>
+<body>
+
+<nav class="nav" id="nav">
+  <div class="wrap nav-in">
+    <a class="brand" href="#top">HORCRUX</a>
+    <div class="nav-links">
+      <a href="#overview">Overview</a>
+      <a href="#method">Method</a>
+      <a href="#qualitative">Qualitative</a>
+      <a href="#comparison">Comparison</a>
+      <a href="#bibtex">BibTeX</a>
+    </div>
+  </div>
+</nav>
+
+<header class="hero wrap" id="top">
+  <div class="badge">Preprint · 2026</div>
+  <h1>HORCRUX</h1>
+  <p class="subtitle">Generalizable Feed-Forward 3D Hand-Object Reconstruction with Coarse-to-Fine Contact Estimation</p>
+  <p class="authors"><a href="https://shpark97.github.io/" target="_blank" rel="noopener">Seonghwan Park</a><a href="https://scholar.google.com/citations?user=37rgddAAAAAJ&amp;hl=en" target="_blank" rel="noopener">Yong-Hoon Kwon</a><a href="https://scholar.google.com/citations?user=VUj1ZWoAAAAJ&amp;hl=en" target="_blank" rel="noopener">Min-Gyu Park</a></p>
+  <p class="affil">Korea Electronics Technology Institute (KETI)</p>
+  <div class="buttons">
+    <a class="btn ghost" href="https://arxiv.org/abs/2611.31812" target="_blank" rel="noopener">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h6"/></svg>Paper</a>
+    <!-- Code: same, a span until the code is released. Then replace it with <a class="btn" href="https://github.com/shpark97/Horcrux">…Code</a> -->
+    <span class="btn disabled" aria-disabled="true" title="Coming soon">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8.5 7L3.5 12l5 5M15.5 7l5 5-5 5"/></svg>Code <span class="soon">soon</span></span>
+    <a class="btn ghost" href="#bibtex">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5H6.5A1.5 1.5 0 0 0 5 6.5v3A1.5 1.5 0 0 1 3.5 11h0A1.5 1.5 0 0 1 5 12.5v5A1.5 1.5 0 0 0 6.5 19H8M16 5h1.5A1.5 1.5 0 0 1 19 6.5v3a1.5 1.5 0 0 0 1.5 1.5h0a1.5 1.5 0 0 0-1.5 1.5v5a1.5 1.5 0 0 1-1.5 1.5H16"/></svg>BibTeX</a>
+  </div>
+  <p class="tldr"><b>TL;DR.</b> HORCRUX is a unified feed-forward transformer that reconstructs one or two hands and the held object from a single image and estimates their contact. Reasoning jointly over frozen foundation features, it generalizes to unseen objects with given or image-reconstructed meshes. <span class="nowrap">Coarse-to-fine</span> estimation resolves this contact over finer hand regions using the reconstructed geometry.</p>
+  <div class="pills">
+    <span class="pill">Unseen-object generalization</span><span class="pill">Fine-grained contact estimation</span><span class="pill">Unified one- and two-hand model</span>
+  </div>
+</header>
+
+<main>
+
+<!-- ============================================================ overview -->
+<section id="overview" class="first"><div class="wrap">
+  <div class="stage" id="hero-stage">
+    <div class="stage-view stage-host panel v3d no-mesh" aria-label="Interactive 3D reconstruction of the hands and the object, with the input image beside it">
+      <img class="photo" draggable="false" alt="" src="data:image/gif;base64,R0lGODlhAQABAAAAACw=">
+      <div class="legend">
+        <span><i style="background:var(--hand)"></i>Hand</span>
+        <span><i style="background:var(--object)"></i>Object</span>
+      </div>
+      <div class="tools"><button type="button" class="tool" data-act="reset">Reset view</button></div>
+      <div class="hint">Drag to orbit</div>
+      <div class="loading">Loading 3D…</div>
+    </div>
+    <div class="stage-panel">
+      <div class="panel-head">
+        <p class="panel-title">From a single image</p>
+        <button type="button" class="play" data-act="play" aria-pressed="true"><span class="play-ic"></span><span class="play-tx">Pause</span></button>
+      </div>
+      <ol class="steps">
+        <li><button type="button" class="step" data-step="0" aria-pressed="true">
+          <span class="step-b"><b>Input</b><small>One image and a mesh of the held object.</small></span></button></li>
+        <li><button type="button" class="step" data-step="1" aria-pressed="false">
+          <span class="step-b"><b>Reconstruction</b><small>The hands and the object in 3D, turning away from the photo's view.</small></span></button></li>
+      </ol>
+      <div class="examples-grid" data-thumbs></div>
+    </div>
+  </div>
+
+  <div class="kpis" id="kpis"></div>
+  <p class="kpi-more">From the best prior method to HORCRUX. All results are in <a href="#comparison">Comparison with prior methods</a> below.</p>
+</div></section>
+
+<!-- ============================================================ method -->
+<section id="method"><div class="wrap">
+  <div class="sec-head">
+    <span class="kicker">Method</span>
+    <h2>A unified transformer with coarse-to-fine contact estimation</h2>
+  </div>
+
+  <div class="chapter"><span class="num">1</span><h3>Joint reasoning over foundation features</h3><p>Frozen foundation encoders tokenize the image, each hand crop, and the object mesh. The object is encoded from its geometry, so the model is not tied to its training objects. A shared transformer then reasons jointly over these tokens to keep the hands and the object aligned.</p></div>
+  <div class="flow" id="flow">
+    <div class="flow-in stage-host">
+      <div class="flow-col">
+        <p class="flow-h">Frozen foundation encoders</p>
+        <div class="in-card"><div class="panel"><img class="photo" draggable="false" data-flow="scene" alt="" src="data:image/gif;base64,R0lGODlhAQABAAAAACw="></div>
+          <div><b>Image</b><small>Scene tokens</small><span class="toks" aria-hidden="true"><i class="tok"></i><i class="tok"></i><i class="tok"></i><i class="tok"></i></span></div></div>
+        <div class="in-card"><div class="panel"><img class="photo" draggable="false" data-flow="crop" alt="" src="data:image/gif;base64,R0lGODlhAQABAAAAACw="></div>
+          <div><b>Hand crop</b><small>Crop tokens, one set per hand</small><span class="toks" aria-hidden="true"><i class="tok h"></i><i class="tok h"></i></span></div></div>
+        <div class="in-card"><div class="panel v3d" data-flow="mesh" aria-label="The object mesh in 3D"></div>
+          <div><b>Object mesh</b><small>Object token from its geometry</small><span class="toks" aria-hidden="true"><i class="tok o"></i></span></div></div>
+      </div>
+      <div class="flow-arrow" aria-hidden="true"><svg viewBox="0 0 26 14"><path d="M1 7h23M18 1.5 24 7l-6 5.5"/></svg></div>
+      <div class="flow-col">
+        <p class="flow-h blank">&nbsp;</p>
+        <div class="core"><b>Shared transformer</b>
+          <span class="toks" aria-hidden="true"><i class="tok"></i><i class="tok"></i><i class="tok"></i><i class="tok h"></i><i class="tok h"></i><i class="tok o"></i><i class="tok q"></i></span></div>
+      </div>
+      <div class="flow-arrow" aria-hidden="true"><svg viewBox="0 0 26 14"><path d="M1 7h23M18 1.5 24 7l-6 5.5"/></svg></div>
+      <div class="flow-col out">
+        <p class="flow-h">Reconstruction</p>
+        <div class="panel v3d" data-flow="recon" aria-label="The reconstructed hand and object, turning in 3D"><div class="loading">Loading 3D…</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="chapter"><span class="num">2</span><h3>Coarse-to-fine contact estimation</h3><p>A coarse head uses latent features to predict which joints touch the object without inheriting reconstruction errors. A fine head then localizes this contact on finer hand regions from their distances to the reconstructed object, separating the palm side of each finger from its back.</p></div>
+  <div class="mv" id="units">
+    <div class="mv-view c2 stage-host">
+      <div class="panel v3d plain" data-unit="coarse" aria-label="The canonical hand colored by the 21 joints of the coarse contact"><div class="pcap"><div class="pcap-name">Coarse<small>21 joints</small></div></div><div class="loading">Loading 3D…</div></div>
+      <div class="panel v3d plain" data-unit="fine" aria-label="The canonical hand colored by the 103 regions of the fine contact"><div class="pcap"><div class="pcap-name">Fine<small>103 regions</small></div></div><div class="loading">Loading 3D…</div></div>
+    </div>
+  </div>
+
+  <div class="sub-head"><h4>Fine contact head</h4><p>The coarse contact identifies the touching joints, and the region distances localize it on the hand surface.</p></div>
+  <!-- the fine head on the first four examples at once: main.js builds a label and four hands per row (coarse, region distance, fine),
+       the input image in the corner of each coarse cell; all of them turn together -->
+  <div class="mv" id="c2f">
+    <div class="mv-view stage-host"></div>
+    <div class="mv-bar center">
+      <div class="legend">
+        <span><i style="background:var(--contact)"></i>Contact</span>
+        <span>Near<i class="grad"></i>Far</span>
+      </div>
+    </div>
+  </div>
+</div></section>
+
+<!-- ============================================================ qualitative results: every viewer on the page, each moving by itself -->
+<section id="qualitative"><div class="wrap">
+  <div class="sec-head">
+    <span class="kicker">Qualitative results</span>
+    <h2>Consistent hand-object alignment from every viewpoint</h2>
+  </div>
+
+  <div class="chapter"><span class="num">1</span><h3>One-hand interaction</h3><p>The baselines roughly follow the image but miss the details of the grasp, which HORCRUX reconstructs accurately.</p></div>
+  <div class="mv rows-view pairs" id="onehand" data-per-stage="8" data-rows="dexycb_20528,oakink_2076,oakink_17486,oakink_3047,dexycb_61660,dexycb_84689,dexycb_3902,oakink_23648">
+    <div class="rows-head" aria-hidden="true"><div class="hd"><span>Input</span><span data-m="0">&nbsp;</span><span data-m="1">&nbsp;</span><span class="ours">HORCRUX (ours)</span></div><div class="hd"><span>Input</span><span data-m="0">&nbsp;</span><span data-m="1">&nbsp;</span><span class="ours">HORCRUX (ours)</span></div></div>
+    <div class="rows"></div>
+    <div class="mv-bar center"><button type="button" class="play" aria-pressed="true"><span class="play-ic"></span><span class="play-tx">Pause</span></button><button type="button" class="tool cam" data-act="camera" aria-pressed="false"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M1.75 5.25h2.9l1.2-1.75h4.3l1.2 1.75h2.9v7.5H1.75z"/><circle cx="8" cy="8.9" r="2.3"/></svg>Camera view</button></div>
+  </div>
+
+  <div class="sub-head"><h4>Video sequences</h4><p>Although HORCRUX reconstructs each frame independently without temporal smoothing, it keeps the object in the grasp throughout.</p></div>
+  <div class="mv rows-view" data-camera="on" id="onehand-clips" data-rows="dex_can,dex_tomato">
+    <div class="rows-head" aria-hidden="true"><div class="hd"><span>Input</span><span data-m="0">&nbsp;</span><span data-m="1">&nbsp;</span><span class="ours">HORCRUX (ours)</span></div></div>
+    <div class="rows"></div>
+    <div class="mv-bar center"><button type="button" class="play" aria-pressed="true"><span class="play-ic"></span><span class="play-tx">Pause</span></button><button type="button" class="tool cam" data-act="camera" aria-pressed="true"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M1.75 5.25h2.9l1.2-1.75h4.3l1.2 1.75h2.9v7.5H1.75z"/><circle cx="8" cy="8.9" r="2.3"/></svg>Camera view</button></div>
+  </div>
+
+  <div class="chapter"><span class="num">2</span><h3>Two-hand interaction</h3><p>From every view, HORCRUX keeps both hands on the object, while the baseline objects separate from the hands.</p></div>
+  <div class="mv rows-view pairs" id="twohand" data-per-stage="6" data-rows="oakink2_990,h2o_4821,oakink2_178,h2o_14992,oakink2_1634,oakink2_1495,h2o_21080,oakink2_1718">
+    <div class="rows-head" aria-hidden="true"><div class="hd"><span>Input</span><span data-m="0">&nbsp;</span><span data-m="1">&nbsp;</span><span class="ours">HORCRUX (ours)</span></div><div class="hd"><span>Input</span><span data-m="0">&nbsp;</span><span data-m="1">&nbsp;</span><span class="ours">HORCRUX (ours)</span></div></div>
+    <div class="rows"></div>
+    <div class="mv-bar center"><button type="button" class="play" aria-pressed="true"><span class="play-ic"></span><span class="play-tx">Pause</span></button><button type="button" class="tool cam" data-act="camera" aria-pressed="false"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M1.75 5.25h2.9l1.2-1.75h4.3l1.2 1.75h2.9v7.5H1.75z"/><circle cx="8" cy="8.9" r="2.3"/></svg>Camera view</button></div>
+  </div>
+
+  <div class="sub-head"><h4>Video sequences</h4><p>Without temporal smoothing, HORCRUX again keeps both hands aligned with the object throughout.</p></div>
+  <div class="mv rows-view" data-camera="on" id="twohand-clips" data-rows="h2o_cocoa,oak2_jar">
+    <div class="rows-head" aria-hidden="true"><div class="hd"><span>Input</span><span data-m="0">&nbsp;</span><span data-m="1">&nbsp;</span><span class="ours">HORCRUX (ours)</span></div></div>
+    <div class="rows"></div>
+    <div class="mv-bar center"><button type="button" class="play" aria-pressed="true"><span class="play-ic"></span><span class="play-tx">Pause</span></button><button type="button" class="tool cam" data-act="camera" aria-pressed="true"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M1.75 5.25h2.9l1.2-1.75h4.3l1.2 1.75h2.9v7.5H1.75z"/><circle cx="8" cy="8.9" r="2.3"/></svg>Camera view</button></div>
+  </div>
+
+  <div class="chapter"><span class="num">3</span><h3>Contact estimation</h3><p>The baselines roughly find where the hand touches the object but miss the details of the contact, which HORCRUX localizes on the touching hand regions.</p></div>
+  <div class="mv rows-view pairs contact-view" id="contact">
+    <div class="rows-head" aria-hidden="true"><div class="hd"><span>Input</span><span>UniHOPE</span><span>HACO</span><span class="ours">HORCRUX (ours)</span></div><div class="hd"><span>Input</span><span>UniHOPE</span><span>HACO</span><span class="ours">HORCRUX (ours)</span></div></div>
+    <div class="rows"></div>
+    <div class="mv-bar center"><button type="button" class="play" aria-pressed="true"><span class="play-ic"></span><span class="play-tx">Pause</span></button><div class="legend"><span><i style="background:var(--contact)"></i>Contact</span></div></div>
+  </div>
+
+  <div class="chapter"><span class="num">4</span><h3>Approximate object meshes</h3><p>Since HORCRUX encodes the object from its geometry, it can take a mesh that SAM 3D reconstructs from the input image in place of a scanned one. Although the two meshes differ in shape, the predicted poses nearly coincide.</p></div>
+  <div class="mv" id="recon">
+    <div class="mv-view stage-host"></div>
+    <div class="mv-bar center">
+      <div class="tabs" data-seg="mesh" role="group" aria-label="Object mesh given to HORCRUX">
+        <button type="button" data-mesh="recon" aria-pressed="true">Image-reconstructed mesh</button><button type="button" data-mesh="scan" aria-pressed="false">Scanned mesh</button>
+      </div>
+    </div>
+  </div>
+</div></section>
+
+<!-- ============================================================ quantitative results: the numbers of the paper's tables, in one place -->
+<section id="comparison"><div class="wrap">
+  <div class="sec-head">
+    <span class="kicker">Quantitative results</span>
+    <h2>Comparison with prior methods</h2>
+  </div>
+  <div class="bars" id="bars"></div>
+  <p class="cap">MJE: mean joint position error in mm. Object AUC: share of frames whose average point distance is within half the object diameter. F1: per-joint contact at 3 mm.</p>
+</div></section>
+
+<!-- ============================================================ bibtex -->
+<section id="bibtex"><div class="wrap">
+  <div class="sec-head">
+    <span class="kicker">Citation</span>
+    <h2>BibTeX</h2>
+  </div>
+  <div class="bib">
+    <button type="button" class="copy" data-copy="#bib">Copy</button>
+<pre id="bib">@article{park2026horcrux,
+  title   = {HORCRUX: Generalizable Feed-Forward 3D Hand-Object Reconstruction with Coarse-to-Fine Contact Estimation},
+  author  = {Park, Seonghwan and Kwon, Yong-Hoon and Park, Min-Gyu},
+  journal = {arXiv preprint arXiv:2611.31812},
+  year    = {2026}
+}</pre>
+  </div>
+</div></section>
+
+</main>
+
+<footer class="footer">
+  <div class="wrap">
+    <p class="fine">© 2026 The authors.</p>
+  </div>
+</footer>
+
+<div class="tip" id="tip" role="tooltip" hidden></div>
+
+<!-- bump ?v= here, and in the import and the index fetch of main.js, whenever these files change: browsers keep the old ones otherwise -->
+<script type="module" src="static/js/main.js?v=20261123c"></script>
+</body>
+</html>
